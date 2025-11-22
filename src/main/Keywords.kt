@@ -1,7 +1,6 @@
-package  main
+package main
 
 object Keywords {
-    // Champion/Ability Keywords
     val CHAMPION_KEYWORDS = mapOf(
         "champion" to TokenType.CHAMPION,
         "ability" to TokenType.ABILITY,
@@ -9,7 +8,6 @@ object Keywords {
         "buff" to TokenType.BUFF
     )
 
-    // Event Keywords
     val EVENT_KEYWORDS = mapOf(
         "onAbilityCast" to TokenType.ON_ABILITY_CAST,
         "onAttack" to TokenType.ON_ATTACK,
@@ -21,19 +19,16 @@ object Keywords {
         "onCooldownReady" to TokenType.ON_COOLDOWN_READY
     )
 
-    // Action Keywords
+    // REMOVED: ping and placeWard
     val ACTION_KEYWORDS = mapOf(
         "cast" to TokenType.CAST,
         "useItem" to TokenType.USE_ITEM,
         "attack" to TokenType.ATTACK,
         "moveTo" to TokenType.MOVE_TO,
-        "placeWard" to TokenType.PLACE_WARD,
-        "ping" to TokenType.PING,
         "recall" to TokenType.RECALL,
         "teleport" to TokenType.TELEPORT
     )
 
-    // Query Keywords
     val QUERY_KEYWORDS = mapOf(
         "enemyInRange" to TokenType.ENEMY_IN_RANGE,
         "nearestEnemy" to TokenType.NEAREST_ENEMY,
@@ -45,7 +40,6 @@ object Keywords {
         "getMana" to TokenType.GET_MANA
     )
 
-    // Control Flow Keywords
     val CONTROL_KEYWORDS = mapOf(
         "if" to TokenType.IF,
         "else" to TokenType.ELSE,
@@ -57,7 +51,6 @@ object Keywords {
         "then" to TokenType.THEN
     )
 
-    // Logic Keywords
     val LOGIC_KEYWORDS = mapOf(
         "and" to TokenType.AND,
         "or" to TokenType.OR,
@@ -66,20 +59,14 @@ object Keywords {
         "false" to TokenType.FALSE
     )
 
-    // Map Object Keywords
-    val MAP_KEYWORDS = mapOf(
-        "dragonPit" to TokenType.DRAGON_PIT,
-        "baronPit" to TokenType.BARON_PIT,
-        "topLane" to TokenType.TOP_LANE,
-        "midLane" to TokenType.MID_LANE,
-        "botLane" to TokenType.BOT_LANE,
-        "triBush" to TokenType.TRI_BUSH,
-        "river" to TokenType.RIVER,
-        "base" to TokenType.BASE
+    val VARIABLE_KEYWORDS = mapOf(
+        "var" to TokenType.VAR,
+        "print" to TokenType.PRINT,
+        "nil" to TokenType.NIL
     )
 
-    // Combined keywords map
+
     val ALL_KEYWORDS = CHAMPION_KEYWORDS + EVENT_KEYWORDS +
             ACTION_KEYWORDS + QUERY_KEYWORDS + CONTROL_KEYWORDS +
-            LOGIC_KEYWORDS + MAP_KEYWORDS
+            LOGIC_KEYWORDS + VARIABLE_KEYWORDS
 }

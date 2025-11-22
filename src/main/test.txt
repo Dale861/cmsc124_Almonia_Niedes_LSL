@@ -1,0 +1,273 @@
+// ==========================================
+// LSL Test Script - test.lsl
+// ==========================================
+// This file tests various features of the
+// LoL Script Language (LSL)
+// ==========================================
+
+print "=== LSL Feature Test Suite ===";
+print "";
+
+// ==========================================
+// Test 1: Basic Arithmetic
+// ==========================================
+print "Test 1: Basic Arithmetic";
+var x = 5 + 3;
+print x;
+
+var y = 10 - 4;
+print y;
+
+var z = 6 * 7;
+print z;
+
+var result = (10 + 5) * 2;
+print result;
+
+print "";
+
+// ==========================================
+// Test 2: Variable Declaration and Types
+// ==========================================
+print "Test 2: Variable Declaration";
+var health = 100;
+var mana = 50.5;
+var championName = "Yasuo";
+var isAlive = true;
+
+print health;
+print mana;
+print championName;
+print isAlive;
+
+print "";
+
+// ==========================================
+// Test 3: Champion Entity
+// ==========================================
+print "Test 3: Champion Entity Methods";
+
+var champion champ = ChampionEntity("Lux");
+print champ;
+
+champ.cast("Light Binding", 50.0);
+champ.cast("Lucent Singularity", 70.0);
+champ.attack("Zed");
+champ.moveTo("mid lane");
+champ.useItem("Health Potion");
+champ.recall();
+
+print "";
+
+// ==========================================
+// Test 4: Ability Entity
+// ==========================================
+print "Test 4: Ability Entity Methods";
+
+var ability flashAbility = AbilityEntity("Flash");
+print flashAbility;
+
+flashAbility.setCooldown(300.0);
+print flashAbility;
+
+flashAbility.reduceCooldown(50.0);
+print flashAbility;
+
+print "";
+
+// ==========================================
+// Test 5: Item Entity
+// ==========================================
+print "Test 5: Item Entity Methods";
+
+var item sword = ItemEntity("Infinity Edge");
+print sword;
+
+sword.addStat("Attack Damage", 80.0);
+sword.addStat("Critical Chance", 20.0);
+print sword;
+
+print "";
+
+// ==========================================
+// Test 6: Control Flow - If/Else
+// ==========================================
+print "Test 6: If/Else Statements";
+
+var hp = 30;
+
+if hp < 50 then
+    print "Health is low!";
+    print "Consider recalling";
+end
+
+if hp > 80 then
+    print "Health is high";
+else
+    print "Health needs attention";
+end
+
+print "";
+
+// ==========================================
+// Test 7: While Loops
+// ==========================================
+print "Test 7: While Loop";
+
+var counter = 0;
+while counter < 5 do
+    print counter;
+    counter = counter + 1;
+end
+
+print "";
+
+// ==========================================
+// Test 8: Logical Operators
+// ==========================================
+print "Test 8: Logical Operators";
+
+var hasFlash = true;
+var hasIgnite = false;
+
+if hasFlash and not hasIgnite then
+    print "Has Flash but no Ignite";
+end
+
+if hasFlash or hasIgnite then
+    print "Has at least one summoner spell";
+end
+
+print "";
+
+// ==========================================
+// Test 9: Comparison Operators
+// ==========================================
+print "Test 9: Comparisons";
+
+var level = 6;
+
+if level >= 6 then
+    print "Ultimate ability unlocked!";
+end
+
+if level == 6 then
+    print "Exactly level 6";
+end
+
+if level < 18 then
+    print "Still leveling up";
+end
+
+print "";
+
+// ==========================================
+// Test 10: Method Chaining
+// ==========================================
+print "Test 10: Method Chaining";
+
+var champion yasuo = ChampionEntity("Yasuo");
+yasuo.cast("Steel Tempest", 30.0).attack("enemy").moveTo("top lane").recall();
+
+print "";
+
+// ==========================================
+// Test 11: Champion Event Handlers
+// ==========================================
+print "Test 11: Event Handlers";
+
+var champion ezreal = ChampionEntity("Ezreal");
+ezreal.onCastHealth(30.0, "Use Health Potion");
+ezreal.onCastMana(20.0, "Recall to base");
+ezreal.checkEvents();
+
+print "";
+
+// ==========================================
+// Test 12: Combo System
+// ==========================================
+print "Test 12: Combo Execution";
+
+var champion zed = ChampionEntity("Zed");
+
+combo {
+    zed.cast("Living Shadow", 40.0);
+    zed.cast("Razor Shuriken", 60.0);
+    zed.attack("target");
+    zed.cast("Death Mark", 100.0);
+}
+
+print "";
+
+// ==========================================
+// Test 13: Complex Scenario
+// ==========================================
+print "Test 13: Complex Combat Scenario";
+
+var champion akali = ChampionEntity("Akali");
+var currentHealth = 45;
+var currentMana = 80;
+
+print "=== Combat Simulation ===";
+
+if currentHealth < 50 and currentMana > 60 then
+    print "Low health but enough mana - play safe";
+    akali.cast("Shuriken Flip", 30.0);
+    akali.moveTo("under tower");
+
+    if currentHealth < 30 then
+        print "Critical health!";
+        akali.recall();
+    end
+end
+
+if currentMana > 100 then
+    combo {
+        akali.cast("Five Point Strike", 60.0);
+        akali.cast("Perfect Execution", 100.0);
+        akali.attack("enemy champion");
+    }
+else
+    print "Not enough mana for full combo";
+end
+
+print "";
+
+// ==========================================
+// Test 14: Champion Declaration
+// ==========================================
+print "Test 14: Champion Declaration with Events";
+
+champion Ahri {
+    onHealthBelow(threshold) {
+        print "Ahri health critical!";
+    }
+
+    onManaBelow(threshold) {
+        print "Ahri mana low!";
+    }
+}
+
+print "";
+
+// ==========================================
+// Test 15: String Operations
+// ==========================================
+print "Test 15: String Operations";
+
+var greeting = "Hello";
+var target = "Summoner";
+var message = greeting + " " + target;
+print message;
+
+var level = 18;
+var status = "Champion level: " + level;
+print status;
+
+print "";
+
+// ==========================================
+// End of Tests
+// ==========================================
+print "=== All Tests Completed ===";
+print "Good luck on the Rift!";

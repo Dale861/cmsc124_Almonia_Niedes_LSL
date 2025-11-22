@@ -25,6 +25,7 @@ class Scanner(private val source: String) {
             ',' -> addToken(TokenType.COMMA)
             '.' -> addToken(TokenType.DOT)
             '%' -> addToken(TokenType.PERCENT)
+            ';' -> addToken(TokenType.SEMICOLON)  // FIX: Added semicolon handling
             '+' -> addToken(TokenType.PLUS)
             '-' -> addToken(TokenType.MINUS)
             '*' -> addToken(TokenType.STAR)
@@ -39,6 +40,7 @@ class Scanner(private val source: String) {
             '=' -> addToken(if (match('=')) TokenType.EQUAL_EQUAL else TokenType.EQUAL)
             '<' -> addToken(if (match('=')) TokenType.LESS_EQUAL else TokenType.LESS)
             '>' -> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
+            '!' -> if (match('=')) addToken(TokenType.EQUAL_EQUAL) // For != operator
             ' ', '\r', '\t' -> {} // Ignore whitespace
             '\n' -> line++
             '"' -> string()
@@ -56,7 +58,6 @@ class Scanner(private val source: String) {
         while (peek().isLetterOrDigit() || peek() == '_') advance()
 
         val text = source.substring(start, current)
-        // Use Keywords.ALL_KEYWORDS instead of internal KEYWORDS map
         val type = Keywords.ALL_KEYWORDS[text] ?: TokenType.IDENTIFIER
         addToken(type)
     }
