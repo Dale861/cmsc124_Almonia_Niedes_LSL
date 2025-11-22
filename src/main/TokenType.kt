@@ -3,7 +3,7 @@ package main
 enum class TokenType {
     // Single-character tokens
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-    COMMA, DOT, PERCENT,
+    COMMA, DOT, PERCENT, SEMICOLON,
 
     // One or two character tokens
     EQUAL, EQUAL_EQUAL,
@@ -22,9 +22,8 @@ enum class TokenType {
     ON_HEALTH_BELOW, ON_MANA_BELOW, ON_ENEMY_APPROACH,
     ON_ALLY_NEARBY, ON_COOLDOWN_READY,
 
-    // Keywords - Actions
-    CAST, USE_ITEM, ATTACK, MOVE_TO, PLACE_WARD,
-    PING, RECALL, TELEPORT,
+    // Keywords - Actions (REMOVED: PING, PLACE_WARD, and map-specific actions)
+    CAST, USE_ITEM, ATTACK, MOVE_TO, RECALL, TELEPORT,
 
     // Keywords - Queries
     ENEMY_IN_RANGE, NEAREST_ENEMY, ALLY_IN_RANGE,
@@ -38,9 +37,10 @@ enum class TokenType {
     // Keywords - Logic
     AND, OR, NOT, TRUE, FALSE,
 
-    // Keywords - Map Objects
-    DRAGON_PIT, BARON_PIT, TOP_LANE, MID_LANE, BOT_LANE,
-    TRI_BUSH, RIVER, BASE,
+    // Keywords - Variables and Output
+    VAR, PRINT, NIL,
+
+    // REMOVED: All map location keywords (DRAGON_PIT, BARON_PIT, etc.)
 
     EOF
 }
