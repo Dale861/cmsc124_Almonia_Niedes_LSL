@@ -98,16 +98,19 @@ data class AbilityEntity(
 }
 data class ItemEntity(
     override val name: String?,
-    val cost: Int = 0,
+    var cost: Int = 0,  // Change val to var if you want to modify it later
     val stats: MutableMap<String, Double> = mutableMapOf()
 ): GameEntity() {
     override val type = "Item"
     fun addStat(statName: String, value: Double): ItemEntity {
         stats[statName] = value; return this
     }
+
     override fun toString(): String {
         return if (name != null) {
-            "Item($name, Cost: ${cost}g)"
+            val statsStr =
+                if (stats.isEmpty()) "" else ", Stats: ${stats.entries.joinToString(", ") { "${it.key}: ${it.value}" }}"
+            "Item($name, Cost: ${cost}g$statsStr)"
         } else {
             "Item(uninitialized)"
         }
@@ -134,3 +137,4 @@ class BuiltinFunction(
 ) {
     override fun toString() = "<builtin function $name>"
 }
+

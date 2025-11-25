@@ -22,7 +22,8 @@ class Evaluator {
 
         environment.define("ItemEntity", BuiltinFunction("ItemEntity") { args ->
             val name = args.getOrNull(0)?.toString()
-            ItemEntity(name)
+            val cost = (args.getOrNull(1) as? Double)?.toInt() ?: 0
+            ItemEntity(name, cost)
         })
 
         environment.define("BuffEntity", BuiltinFunction("BuffEntity") { args ->

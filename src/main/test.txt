@@ -80,7 +80,7 @@ print "";
 // ==========================================
 print "Test 5: Item Entity Methods";
 
-var item sword = ItemEntity("Infinity Edge");
+var item sword = ItemEntity("Infinity Edge", 3400);
 print sword;
 
 sword.addStat("Attack Damage", 80.0);
@@ -167,7 +167,7 @@ print "";
 print "Test 10: Method Chaining";
 
 var champion yasuo = ChampionEntity("Yasuo");
-yasuo.cast("Steel Tempest", 30.0).attack("enemy").moveTo("top lane").recall();
+yasuo.cast("Steel Tempest").attack("enemy").moveTo("top lane").recall();
 
 print "";
 
