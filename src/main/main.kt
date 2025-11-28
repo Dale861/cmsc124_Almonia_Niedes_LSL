@@ -35,40 +35,69 @@ fun runRepl() {
 
     var evaluator = Evaluator()
 
+    var buffer = StringBuilder() //for REPL so that it could take {
+    var braceDepth = 0
+
     while (true) {
-        print("LSL> ")
+        print(if (braceDepth == 0) "LSL> " else "... ")
+
         val line = readLine() ?: break
         val trimmed = line.trim()
         val trimmedLower = trimmed.lowercase()
 
-        when {
-            trimmedLower == "exit" || trimmedLower == "quit" -> {
-                println("Thanks for using LSL! Good luck on the Rift!")
-                break
-            }
-            trimmedLower == "clear" -> {
-                evaluator = Evaluator()
-                println("Environment cleared!")
-            }
-            trimmedLower == "help" -> {
-                showHelp()
-            }
-            trimmedLower == "paste" -> {
-                handlePasteMode(evaluator)
-            }
-            trimmedLower.startsWith("run ") -> {
-                val filename = trimmed.substring(4).trim()
-                try {
-                    runFile(filename)
-                } catch (e: Exception) {
-                    println("Error loading file '$filename': ${e.message}")
+        if (braceDepth == 0) {
+            when {
+                trimmedLower == "exit" || trimmedLower == "quit" -> {
+                    println("Thanks for using LSL! Good luck on the Rift!")
+                    break
+                }
+                trimmedLower == "clear" -> {
+                    evaluator = Evaluator()
+                    println("Environment cleared!")
+                    buffer = StringBuilder()
+                    braceDepth = 0
+                    continue
+                }
+                trimmedLower == "help" -> {
+                    showHelp()
+                    continue
+                }
+                trimmedLower == "paste" -> {
+                    handlePasteMode(evaluator)
+                    continue
+                }
+                trimmedLower.startsWith("run ") -> {
+                    val filename = trimmed.substring(4).trim()
+                    try {
+                        runFile(filename)
+                    } catch (e: Exception) {
+                        println("Error loading file '$filename': ${e.message}")
+                    }
+                    continue
+                }
+                trimmed.isEmpty() -> {
+                    continue
                 }
             }
-            trimmed.isEmpty() -> { }
-            else -> run(line, true, evaluator)
+        }
+
+        buffer.appendLine(line)
+        braceDepth += line.count { it == '{' }
+        braceDepth -= line.count { it == '}' }
+
+        if (braceDepth == 0 && buffer.isNotBlank()) {
+            val code = buffer.toString()
+            buffer = StringBuilder()
+
+            try {
+                run(code, true, evaluator)
+            } catch (e: Exception) {
+                println("Error: ${e.message}")
+            }
         }
     }
 }
+
 
 fun showHelp() {
     println()
@@ -88,7 +117,7 @@ fun showHelp() {
 
 fun handlePasteMode(evaluator: Evaluator) {
     println()
-    println("=== Multi-line Paste Mode ===")
+    println("=== Multi-line Script Mode ===")
     println("Paste your code below.")
     println("Type 'END' on a new line when finished.")
     println("Type 'CANCEL' to abort.")
