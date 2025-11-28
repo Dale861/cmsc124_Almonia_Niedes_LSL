@@ -2,6 +2,7 @@ package main
 
 class Parser(private val tokens: List<Token>) {
     private var current = 0
+
     class ParseError : RuntimeException()
 
     fun parseStatements(): List<Stmt> {
@@ -64,7 +65,7 @@ class Parser(private val tokens: List<Token>) {
             match(TokenType.WHILE) -> whileStatement()
             match(TokenType.COMBO) -> comboStatement()
             match(TokenType.PRINT) -> printStatement()
-            match(TokenType.LEFT_BRACE) -> Stmt.Block(block())
+            match(TokenType.LEFT_BRACE) -> block()  // ← Changed: block() already returns Stmt.Block
             else -> expressionStatement()
         }
     }
@@ -96,27 +97,17 @@ class Parser(private val tokens: List<Token>) {
         }
         consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
         consume(TokenType.LEFT_BRACE, "Expect '{' before event body.")
-        val body = mutableListOf<Stmt>()
-        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            body.add(declaration())
-        }
-        consume(TokenType.RIGHT_BRACE, "Expect '}' after event body.")
+        val body = block()  // ← returns Stmt.Block
         return Expr.EventHandler(eventType, params, body)
     }
 
     private fun ifStatement(): Stmt {
         val condition = expression()
         consume(TokenType.THEN, "Expect 'then' after if condition.")
-        val thenBranch = mutableListOf<Stmt>()
-        while (!check(TokenType.ELSE) && !check(TokenType.END) && !isAtEnd()) {
-            thenBranch.add(declaration())
-        }
-        var elseBranch: List<Stmt>? = null
+        val thenBranch = block()  // ← returns Stmt.Block
+        var elseBranch: Stmt.Block? = null
         if (match(TokenType.ELSE)) {
-            elseBranch = mutableListOf()
-            while (!check(TokenType.END) && !isAtEnd()) {
-                elseBranch.add(declaration())
-            }
+            elseBranch = block()  // ← returns Stmt.Block
         }
         consume(TokenType.END, "Expect 'end' after if statement.")
         return Stmt.If(condition, thenBranch, elseBranch)
@@ -125,31 +116,25 @@ class Parser(private val tokens: List<Token>) {
     private fun whileStatement(): Stmt {
         val condition = expression()
         consume(TokenType.DO, "Expect 'do' after while condition.")
-        val body = mutableListOf<Stmt>()
-        while (!check(TokenType.END) && !isAtEnd()) {
-            body.add(declaration())
-        }
+        val body = block()  // ← returns Stmt.Block
         consume(TokenType.END, "Expect 'end' after while body.")
         return Stmt.While(condition, body)
     }
 
     private fun comboStatement(): Stmt {
         consume(TokenType.LEFT_BRACE, "Expect '{' after 'combo'.")
-        val actions = mutableListOf<Stmt>()
-        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            actions.add(declaration())
-        }
+        val actions = block()  // ← returns Stmt.Block
         consume(TokenType.RIGHT_BRACE, "Expect '}' after combo body.")
         return Stmt.Combo(actions)
     }
 
-    private fun block(): List<Stmt> {
+    private fun block(): Stmt.Block {  // ← Now returns Stmt.Block, not List<Stmt>
         val statements = mutableListOf<Stmt>()
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
             statements.add(declaration())
         }
         consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
-        return statements
+        return Stmt.Block(statements)  // ← Stmt.Block constructor takes List<Stmt>
     }
 
     private fun expressionStatement(): Stmt {
@@ -159,7 +144,6 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun expression(): Expr = assignment()
-
     private fun assignment(): Expr {
         val expr = logicOr()
         if (match(TokenType.EQUAL)) {
@@ -249,8 +233,6 @@ class Parser(private val tokens: List<Token>) {
             when {
                 match(TokenType.LEFT_PAREN) -> expr = finishCall(expr)
                 match(TokenType.DOT) -> {
-                    // FIX: Accept any token as a method name, not just IDENTIFIER
-                    // This allows keywords like "cast", "attack" to be used as methods
                     val methodName = advanceAsIdentifier()
                     consume(TokenType.LEFT_PAREN, "Expect '(' after method name")
                     val args = mutableListOf<Expr>()
@@ -268,11 +250,9 @@ class Parser(private val tokens: List<Token>) {
         return expr
     }
 
-    // NEW: Helper to consume any token as an identifier (for method names)
     private fun advanceAsIdentifier(): Token {
         if (isAtEnd()) throw error(peek(), "Expect method name after '.'")
         val token = advance()
-        // Convert the token to act like an identifier by creating a new token
         return Token(TokenType.IDENTIFIER, token.lexeme, null, token.line)
     }
 
@@ -340,9 +320,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun isAtEnd(): Boolean = peek().type == TokenType.EOF
-
     private fun peek(): Token = tokens[current]
-
     private fun previous(): Token = tokens[current - 1]
 
     private fun error(token: Token, message: String): ParseError {

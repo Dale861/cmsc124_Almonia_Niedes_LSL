@@ -27,7 +27,7 @@ fun runRepl() {
     println()
     println("Type statements ending with ';'")
     println("Type 'exit' or 'quit' to exit")
-    println("Type 'paste' to enter multi-line paste mode")
+    println("Type 'script' to enter multi-line script mode")
     println("Type 'run <filename>' to execute a script")
     println("Type 'clear' to reset the environment")
     println("Type 'help' for more commands")
@@ -35,46 +35,75 @@ fun runRepl() {
 
     var evaluator = Evaluator()
 
+    var buffer = StringBuilder() //for REPL so that it could take {
+    var braceDepth = 0
+
     while (true) {
-        print("LSL> ")
+        print(if (braceDepth == 0) "LSL> " else "... ")
+
         val line = readLine() ?: break
         val trimmed = line.trim()
         val trimmedLower = trimmed.lowercase()
 
-        when {
-            trimmedLower == "exit" || trimmedLower == "quit" -> {
-                println("Thanks for using LSL! Good luck on the Rift!")
-                break
-            }
-            trimmedLower == "clear" -> {
-                evaluator = Evaluator()
-                println("Environment cleared!")
-            }
-            trimmedLower == "help" -> {
-                showHelp()
-            }
-            trimmedLower == "paste" -> {
-                handlePasteMode(evaluator)
-            }
-            trimmedLower.startsWith("run ") -> {
-                val filename = trimmed.substring(4).trim()
-                try {
-                    runFile(filename)
-                } catch (e: Exception) {
-                    println("Error loading file '$filename': ${e.message}")
+        if (braceDepth == 0) {
+            when {
+                trimmedLower == "exit" || trimmedLower == "quit" -> {
+                    println("Thanks for using LSL! Good luck on the Rift!")
+                    break
+                }
+                trimmedLower == "clear" -> {
+                    evaluator = Evaluator()
+                    println("Environment cleared!")
+                    buffer = StringBuilder()
+                    braceDepth = 0
+                    continue
+                }
+                trimmedLower == "help" -> {
+                    showHelp()
+                    continue
+                }
+                trimmedLower == "script" -> {
+                    handlescriptMode(evaluator)
+                    continue
+                }
+                trimmedLower.startsWith("run ") -> {
+                    val filename = trimmed.substring(4).trim()
+                    try {
+                        runFile(filename)
+                    } catch (e: Exception) {
+                        println("Error loading file '$filename': ${e.message}")
+                    }
+                    continue
+                }
+                trimmed.isEmpty() -> {
+                    continue
                 }
             }
-            trimmed.isEmpty() -> { }
-            else -> run(line, true, evaluator)
+        }
+
+        buffer.appendLine(line)
+        braceDepth += line.count { it == '{' }
+        braceDepth -= line.count { it == '}' }
+
+        if (braceDepth == 0 && buffer.isNotBlank()) {
+            val code = buffer.toString()
+            buffer = StringBuilder()
+
+            try {
+                run(code, true, evaluator)
+            } catch (e: Exception) {
+                println("Error: ${e.message}")
+            }
         }
     }
 }
+
 
 fun showHelp() {
     println()
     println("=== LSL REPL Commands ===")
     println("  exit, quit     - Exit the REPL")
-    println("  paste          - Enter multi-line paste mode (type 'END' to finish)")
+    println("  script          - Enter multi-line script mode (type 'END' to finish)")
     println("  run <file>     - Execute a script file")
     println("  clear          - Reset the environment")
     println("  help           - Show this help message")
@@ -86,10 +115,10 @@ fun showHelp() {
     println()
 }
 
-fun handlePasteMode(evaluator: Evaluator) {
+fun handlescriptMode(evaluator: Evaluator) {
     println()
-    println("=== Multi-line Paste Mode ===")
-    println("Paste your code below.")
+    println("=== Multi-line Script Mode ===")
+    println("script your code below.")
     println("Type 'END' on a new line when finished.")
     println("Type 'CANCEL' to abort.")
     println()
@@ -109,7 +138,7 @@ fun handlePasteMode(evaluator: Evaluator) {
 
                 val code = codeLines.joinToString("\n")
                 println()
-                println("=== Executing Pasted Code ===")
+                println("=== Executing scriptd Code ===")
                 println()
 
                 try {
@@ -122,7 +151,7 @@ fun handlePasteMode(evaluator: Evaluator) {
                 return
             }
             "CANCEL" -> {
-                println("Paste mode cancelled.")
+                println("script mode cancelled.")
                 return
             }
             else -> {

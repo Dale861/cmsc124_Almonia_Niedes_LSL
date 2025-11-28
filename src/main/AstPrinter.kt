@@ -26,7 +26,6 @@ class AstPrinter(expr: Expr) {
                 // Your existing logic or simplified version
                 "(eventHandler ...)"
             }
-            else -> "unknown"
         }
     }
 }
