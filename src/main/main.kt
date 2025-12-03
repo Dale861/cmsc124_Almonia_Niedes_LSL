@@ -27,7 +27,7 @@ fun runRepl() {
     println()
     println("Type statements ending with ';'")
     println("Type 'exit' or 'quit' to exit")
-    println("Type 'script' to enter multi-line script mode")
+    println("Type 'script' to enter multi-line paste mode")
     println("Type 'run <filename>' to execute a script")
     println("Type 'clear' to reset the environment")
     println("Type 'help' for more commands")
@@ -63,7 +63,7 @@ fun runRepl() {
                     continue
                 }
                 trimmedLower == "script" -> {
-                    handlescriptMode(evaluator)
+                    handlePasteMode(evaluator)
                     continue
                 }
                 trimmedLower.startsWith("run ") -> {
