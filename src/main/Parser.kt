@@ -20,6 +20,7 @@ class Parser(private val tokens: List<Token>) {
         return try {
             when {
                 match(TokenType.VAR) -> varDeclaration()
+                match(TokenType.FUN) -> funDeclaration()
                 else -> statement()
             }
         } catch (e: ParseError) {
@@ -68,8 +69,53 @@ class Parser(private val tokens: List<Token>) {
             match(TokenType.COMBO) -> comboStatement()
             match(TokenType.PRINT) -> printStatement()
             match(TokenType.LEFT_BRACE) -> Stmt.Block(block())
+            match(TokenType.FOR) -> forStatement()
+            match(TokenType.RETURN) -> returnStatement()
             else -> expressionStatement()
         }
+    }
+
+    private fun forStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+        val initializer = if (!check(TokenType.SEMICOLON)) {
+            if (match(TokenType.VAR)) varDeclaration() else expressionStatement()
+        } else null
+        consume(TokenType.SEMICOLON, "Expect ';' after initializer.")
+
+        val condition = if (!check(TokenType.SEMICOLON)) expression() else null
+        consume(TokenType.SEMICOLON, "Expect ';' after condition.")
+
+        val increment = if (!check(TokenType.RIGHT_PAREN)) expression() else null
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        val body = block()  // Use {} block
+        return Stmt.For(initializer, condition, increment, body)
+    }
+
+    private fun returnStatement(): Stmt {
+        val keyword = previous()
+        val value = if (!check(TokenType.SEMICOLON)) expression() else null
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.")
+        return Stmt.Return(keyword, value)
+    }
+
+    private fun argumentList(): List<Token> {
+        val params = mutableListOf<Token>()
+        do {
+            params.add(consume(TokenType.IDENTIFIER, "Expect parameter name."))
+        } while (match(TokenType.COMMA))
+        return params
+    }
+
+    private fun funDeclaration(): Stmt {
+        val name = consume(TokenType.IDENTIFIER, "Expect function name.")
+        consume(TokenType.LEFT_PAREN, "Expect '(' after function name.")
+        val params = if (!check(TokenType.RIGHT_PAREN)) {
+            argumentList()
+        } else emptyList()
+        consume(TokenType.LEFT_BRACE, "Expect '{' before function body.")
+        val body = block()
+        return Stmt.Function(name, params, body)
     }
 
     private fun championStatement(): Stmt {
@@ -180,9 +226,7 @@ class Parser(private val tokens: List<Token>) {
     private fun logicOr(): Expr {
         var expr = logicAnd()
         while (match(TokenType.OR)) {
-            val operator = previous()
-            val right = logicAnd()
-            expr = Expr.Binary(expr, operator, right)
+            expr = Expr.LogicalOr(expr, previous(), logicAnd())  // Use LogicalOr
         }
         return expr
     }
@@ -190,9 +234,7 @@ class Parser(private val tokens: List<Token>) {
     private fun logicAnd(): Expr {
         var expr = equality()
         while (match(TokenType.AND)) {
-            val operator = previous()
-            val right = equality()
-            expr = Expr.Binary(expr, operator, right)
+            expr = Expr.LogicalAnd(expr, previous(), equality())  // Use LogicalAnd
         }
         return expr
     }
@@ -287,7 +329,11 @@ class Parser(private val tokens: List<Token>) {
             is Expr.Variable -> callee.name
             else -> throw error(peek(), "Invalid function call")
         }
-        return Expr.Call(calleeToken, args.toList())
+        return if (callee is Expr.Variable) {
+            Expr.Call(callee.name, args)
+        } else {
+            Expr.FunctionCall(callee, previous(), args)  // Use FunctionCall for expressions
+        }
     }
 
     private fun primary(): Expr {

@@ -42,5 +42,7 @@ enum class TokenType {
 
     // REMOVED: All map location keywords (DRAGON_PIT, BARON_PIT, etc.)
 
+    FUN, RETURN,
+
     EOF
 }
