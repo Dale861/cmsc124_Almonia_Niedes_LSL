@@ -1,10 +1,52 @@
-// Fixed Scanner.kt - Add semicolon handling
 package main
 
 class RuntimeError(message: String, val line: Int = 0) : RuntimeException(message)
 
 class Evaluator {
+
     private var environment = Environment()
+
+    interface Callable {
+        fun arity(): Int
+        fun call(args: List<Any?>): Any?
+    }
+
+    inner class ClockNative : Callable {
+        override fun arity() = 0
+        override fun call(args: List<Any?>) = System.currentTimeMillis() / 1000.0
+    }
+
+    inner class ReadLineNative : Callable {
+        override fun arity() = 0
+        override fun call(args: List<Any?>) = readLine()
+    }
+
+    inner class Function(val declaration: Stmt.Function, val closure: Environment) : Callable {
+        override fun arity(): Int = declaration.params.size
+
+        override fun call(args: List<Any?>): Any? {
+            val env = Environment(enclosing = closure)
+            for (i in declaration.params.indices) {
+                env.define(declaration.params[i].lexeme, args[i])
+            }
+
+            val previousEnvironment = environment  // Access outer 'environment'
+            environment = env  // Switch to function environment
+
+            try {
+                declaration.body.forEach { stmt ->
+                    evaluateStatement(stmt)  // Direct access to outer method
+                }
+                return null
+            } catch (e: ReturnException) {
+                return e.value
+            } finally {
+                environment = previousEnvironment  // Restore
+            }
+        }
+
+        override fun toString(): String = "<fn ${declaration.name.lexeme}>"
+    }
 
     init {
         // Register built-in constructors
@@ -12,23 +54,33 @@ class Evaluator {
             val name = args.getOrNull(0)?.toString()
             ChampionEntity(name)
         })
+
         environment.define("AbilityEntity", BuiltinFunction("AbilityEntity") { args ->
             val name = args.getOrNull(0)?.toString()
             AbilityEntity(name)
         })
+
         environment.define("ItemEntity", BuiltinFunction("ItemEntity") { args ->
             val name = args.getOrNull(0)?.toString()
             val cost = (args.getOrNull(1) as? Double)?.toInt() ?: 0
             ItemEntity(name, cost)
         })
+
         environment.define("BuffEntity", BuiltinFunction("BuffEntity") { args ->
             val name = args.getOrNull(0)?.toString()
             BuffEntity(name)
         })
+        environment.define("clock", ClockNative())
+        environment.define("readLine", ReadLineNative())
     }
+
+
 
     private fun evaluate(expr: Expr): Any? {
         return when (expr) {
+            is Expr.LogicalAnd -> evaluateLogicalAnd(expr)
+            is Expr.LogicalOr -> evaluateLogicalOr(expr)
+            is Expr.FunctionCall -> evaluateFunctionCall(expr)
             is Expr.EventHandler -> evaluateEventHandler(expr)
             is Expr.Call -> evaluateCall(expr)
             is Expr.Binary -> evaluateBinary(expr)
@@ -38,7 +90,24 @@ class Evaluator {
             is Expr.Assign -> evaluateAssign(expr)
             is Expr.Grouping -> evaluate(expr.expression)
             is Expr.MethodCall -> evaluateMethodCall(expr)
+            else -> throw RuntimeError("Unknown expression type", 0)
         }
+    }
+
+    private fun evaluateLogicalAnd(expr: Expr.LogicalAnd): Any? {
+        val left = evaluate(expr.left)
+        if (!isTruthy(left)) return left  // Short-circuit: FALSE && anything = FALSE
+
+        val right = evaluate(expr.right)
+        return right
+    }
+
+    private fun evaluateLogicalOr(expr: Expr.LogicalOr): Any? {
+        val left = evaluate(expr.left)
+        if (isTruthy(left)) return left  // Short-circuit: TRUE || anything = TRUE
+
+        val right = evaluate(expr.right)
+        return right
     }
 
     private fun evaluateAssign(expr: Expr.Assign): Any? {
@@ -102,6 +171,7 @@ class Evaluator {
                 else -> throw RuntimeError("Unknown method '$methodName' on Champion", call.methodName.line)
             }
         }
+
         // Handle AbilityEntity methods
         if (obj is AbilityEntity) {
             return when (methodName) {
@@ -118,6 +188,7 @@ class Evaluator {
                 else -> throw RuntimeError("Unknown method '$methodName' on Ability", call.methodName.line)
             }
         }
+
         // Handle ItemEntity methods
         if (obj is ItemEntity) {
             return when (methodName) {
@@ -130,6 +201,7 @@ class Evaluator {
                 else -> throw RuntimeError("Unknown method '$methodName' on Item", call.methodName.line)
             }
         }
+
         throw RuntimeError("Cannot call method on non-entity object", call.methodName.line)
     }
 
@@ -144,13 +216,25 @@ class Evaluator {
     private fun evaluateEventHandler(handler: Expr.EventHandler): Any? {
         val eventName = handler.eventType.lexeme
         val params = handler.params.joinToString(", ") { it.lexeme }
-        println(" Event: $eventName($params)")
-        evaluateStatement(handler.body)  // Now traverses Stmt.Block tree
+        println("  Event: $eventName($params)")
+
+        handler.body.forEach { stmt ->
+            evaluateStatement(stmt)
+        }
         return null
     }
 
     fun evaluateStatement(stmt: Stmt): Any? {
         return when (stmt) {
+            is Stmt.For -> evaluateFor(stmt)
+            is Stmt.Function -> {  // NEW
+                environment.define(stmt.name.lexeme, Function(stmt, environment))
+                null
+            }
+            is Stmt.Return -> {  // NEW
+                val value = stmt.value?.let { evaluate(it) }
+                throw ReturnException(value)
+            }
             is Stmt.Champion -> evaluateChampionStatement(stmt)
             is Stmt.If -> evaluateIf(stmt)
             is Stmt.While -> evaluateWhile(stmt)
@@ -180,16 +264,44 @@ class Evaluator {
                 environment.define(stmt.name.lexeme, value)
                 null
             }
+            else -> throw RuntimeError("Unknown statement", 0)
         }
     }
+
+    private fun evaluateFor(forStmt: Stmt.For): Any? {
+        val previous = environment
+        try {
+            environment = Environment(previous)
+
+            forStmt.initializer?.let {
+                evaluateStatement(it)
+            }
+
+            while (forStmt.condition == null || isTruthy(evaluate(forStmt.condition))) {
+                forStmt.body.forEach { stmt ->
+                    evaluateStatement(stmt)
+                }
+
+                forStmt.increment?.let {
+                    evaluate(it)
+                }
+            }
+
+            return null
+        } finally {
+            environment = previous
+        }
+    }
+
+
 
     private fun evaluateIf(ifStmt: Stmt.If): Any? {
         val condition = evaluate(ifStmt.condition)
         return if (isTruthy(condition)) {
-            evaluateStatement(ifStmt.thenBranch)  // Traverse Block tree
+            ifStmt.thenBranch.forEach { evaluateStatement(it) }
             null
         } else if (ifStmt.elseBranch != null) {
-            evaluateStatement(ifStmt.elseBranch)  // Traverse Block tree
+            ifStmt.elseBranch.forEach { evaluateStatement(it) }
             null
         } else {
             null
@@ -198,31 +310,51 @@ class Evaluator {
 
     private fun evaluateWhile(whileStmt: Stmt.While): Any? {
         while (isTruthy(evaluate(whileStmt.condition))) {
-            evaluateStatement(whileStmt.body)  // Traverse Block tree
+            whileStmt.body.forEach { evaluateStatement(it) }
         }
         return null
     }
 
     private fun evaluateCombo(combo: Stmt.Combo): Any? {
-        println(" Combo executing...")
-        evaluateStatement(combo.actions)  // Traverse Block tree
+        println("    Combo executing...")
+        combo.actions.forEach { evaluateStatement(it) }
         return null
     }
 
     private fun evaluateCall(call: Expr.Call): Any? {
         val callee = environment.get(call.callee)
         val args = call.args.map { evaluate(it) }
-        if (callee is BuiltinFunction) {
-            return callee.implementation(args)
+
+        when {
+            callee is BuiltinFunction -> return callee.implementation(args)
+            callee is Callable -> {
+                if (args.size != callee.arity()) {
+                    throw RuntimeError("Expected ${callee.arity()} arguments but got ${args.size}.", call.callee.line)
+                }
+                return callee.call(args)
+            }
         }
-        println(" Calling: ${call.callee.lexeme}(${args.joinToString(", ")})")
+        println("    Calling: ${call.callee.lexeme}(${args.joinToString(", ")})")
         return null
+    }
+
+    private fun evaluateFunctionCall(call: Expr.FunctionCall): Any? {
+        val callee = evaluate(call.callee)  // Evaluate expression to get function
+        if (callee !is Callable) {
+            throw RuntimeError("Can only call functions.", call.paren.line)
+        }
+        val args = call.arguments.map { evaluate(it) }
+        if (args.size != callee.arity()) {
+            throw RuntimeError("Expected ${callee.arity()} arguments but got ${args.size}.", call.paren.line)
+        }
+        return callee.call(args)
     }
 
     private fun evaluateBinary(expr: Expr.Binary): Any? {
         val left = evaluate(expr.left)
         val right = evaluate(expr.right)
         val operator = expr.operator.lexeme
+
         return when (operator) {
             "+" -> {
                 when {
@@ -269,8 +401,6 @@ class Evaluator {
                 (left as Double) <= (right as Double)
             }
             "==" -> isEqual(left, right)
-            "and" -> isTruthy(left) && isTruthy(right)
-            "or" -> isTruthy(left) || isTruthy(right)
             else -> throw RuntimeError("Unknown operator: $operator", expr.operator.line)
         }
     }
@@ -278,6 +408,7 @@ class Evaluator {
     private fun evaluateUnary(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
         val operator = expr.operator.lexeme
+
         return when (operator) {
             "-" -> {
                 requireNumber(right, expr.operator)
@@ -324,3 +455,5 @@ class Evaluator {
         return value.toString()
     }
 }
+
+class ReturnException(val value: Any?) : Exception()

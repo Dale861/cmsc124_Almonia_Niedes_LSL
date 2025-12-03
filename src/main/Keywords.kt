@@ -19,6 +19,8 @@ object Keywords {
         "onCooldownReady" to TokenType.ON_COOLDOWN_READY
     )
 
+    val FUNCTION_KEYWORDS = mapOf("fun" to TokenType.FUN, "return" to TokenType.RETURN)
+
     // REMOVED: ping and placeWard
     val ACTION_KEYWORDS = mapOf(
         "cast" to TokenType.CAST,
@@ -67,6 +69,6 @@ object Keywords {
 
 
     val ALL_KEYWORDS = CHAMPION_KEYWORDS + EVENT_KEYWORDS +
-            ACTION_KEYWORDS + QUERY_KEYWORDS + CONTROL_KEYWORDS +
+            FUNCTION_KEYWORDS + ACTION_KEYWORDS + QUERY_KEYWORDS + CONTROL_KEYWORDS +
             LOGIC_KEYWORDS + VARIABLE_KEYWORDS
 }
