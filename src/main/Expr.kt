@@ -1,7 +1,7 @@
 package main
 
 sealed class Expr {
-    data class EventHandler(val eventType: Token, val params: List<Token>, val body: List<Stmt>) : Expr()
+    data class EventHandler(val eventType: Token, val params: List<Token>, val body: Stmt.Block) : Expr()
     data class Call(val callee: Token, val args: List<Expr>) : Expr()
     data class Binary(val left: Expr, val operator: Token, val right: Expr) : Expr()
     data class Unary(val operator: Token, val right: Expr) : Expr()
@@ -9,8 +9,6 @@ sealed class Expr {
     data class Variable(val name: Token) : Expr()
     data class Assign(val name: Token, val value: Expr) : Expr()
     data class Grouping(val expression: Expr) : Expr()
-
-    // NEW: Method call on an object
     data class MethodCall(val obj: Expr, val methodName: Token, val args: List<Expr>) : Expr()
 
     // NEW: Logical operators (lab5)
@@ -22,10 +20,10 @@ sealed class Expr {
 }
 
 sealed class Stmt {
-    data class If(val condition: Expr, val thenBranch: List<Stmt>, val elseBranch: List<Stmt>?) : Stmt()
+    data class If(val condition: Expr, val thenBranch: Stmt.Block, val elseBranch: Stmt.Block?) : Stmt()
     data class Champion(val name: Token, val events: List<Expr.EventHandler>) : Stmt()
-    data class While(val condition: Expr, val body: List<Stmt>) : Stmt()
-    data class Combo(val actions: List<Stmt>) : Stmt()
+    data class While(val condition: Expr, val body: Stmt.Block) : Stmt()
+    data class Combo(val actions: Stmt.Block) : Stmt()
     data class Expression(val expression: Expr) : Stmt()
     data class Block(val statements: List<Stmt>) : Stmt()
     data class Print(val expression: Expr) : Stmt()

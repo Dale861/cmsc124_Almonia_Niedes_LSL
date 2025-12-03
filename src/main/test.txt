@@ -271,7 +271,7 @@ print "";
 // Test 16: Scoping
 // ==========================================
 print "Test 16: Scoping";
-var x2 = 5;
+var x= 5;
 {
     var x2 = 20;
     print x2;

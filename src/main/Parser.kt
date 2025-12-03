@@ -2,6 +2,7 @@ package main
 
 class Parser(private val tokens: List<Token>) {
     private var current = 0
+
     class ParseError : RuntimeException()
 
     fun parseStatements(): List<Stmt> {
@@ -177,16 +178,10 @@ class Parser(private val tokens: List<Token>) {
     private fun ifStatement(): Stmt {
         val condition = expression()
         consume(TokenType.THEN, "Expect 'then' after if condition.")
-        val thenBranch = mutableListOf<Stmt>()
-        while (!check(TokenType.ELSE) && !check(TokenType.END) && !isAtEnd()) {
-            thenBranch.add(declaration())
-        }
-        var elseBranch: List<Stmt>? = null
+        val thenBranch = block()  // ← returns Stmt.Block
+        var elseBranch: Stmt.Block? = null
         if (match(TokenType.ELSE)) {
-            elseBranch = mutableListOf()
-            while (!check(TokenType.END) && !isAtEnd()) {
-                elseBranch.add(declaration())
-            }
+            elseBranch = block()  // ← returns Stmt.Block
         }
         consume(TokenType.END, "Expect 'end' after if statement.")
         return Stmt.If(condition, thenBranch.toList(), elseBranch?.toList())
@@ -195,25 +190,19 @@ class Parser(private val tokens: List<Token>) {
     private fun whileStatement(): Stmt {
         val condition = expression()
         consume(TokenType.DO, "Expect 'do' after while condition.")
-        val body = mutableListOf<Stmt>()
-        while (!check(TokenType.END) && !isAtEnd()) {
-            body.add(declaration())
-        }
+        val body = block()  // ← returns Stmt.Block
         consume(TokenType.END, "Expect 'end' after while body.")
         return Stmt.While(condition, body.toList())
     }
 
     private fun comboStatement(): Stmt {
         consume(TokenType.LEFT_BRACE, "Expect '{' after 'combo'.")
-        val actions = mutableListOf<Stmt>()
-        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            actions.add(declaration())
-        }
+        val actions = block()  // ← returns Stmt.Block
         consume(TokenType.RIGHT_BRACE, "Expect '}' after combo body.")
         return Stmt.Combo(actions.toList())
     }
 
-    private fun block(): List<Stmt> {
+    private fun block(): Stmt.Block {  // ← Now returns Stmt.Block, not List<Stmt>
         val statements = mutableListOf<Stmt>()
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
             statements.add(declaration())
@@ -229,7 +218,6 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun expression(): Expr = assignment()
-
     private fun assignment(): Expr {
         val expr = logicOr()
         if (match(TokenType.EQUAL)) {
@@ -406,9 +394,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun isAtEnd(): Boolean = peek().type == TokenType.EOF
-
     private fun peek(): Token = tokens[current]
-
     private fun previous(): Token = tokens[current - 1]
 
     private fun error(token: Token, message: String): ParseError {

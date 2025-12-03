@@ -1,9 +1,9 @@
+// Fixed Scanner.kt - Add semicolon handling
 package main
 
 class RuntimeError(message: String, val line: Int = 0) : RuntimeException(message)
 
 class Evaluator {
-
     private var environment = Environment()
 
     interface Callable {
@@ -54,18 +54,15 @@ class Evaluator {
             val name = args.getOrNull(0)?.toString()
             ChampionEntity(name)
         })
-
         environment.define("AbilityEntity", BuiltinFunction("AbilityEntity") { args ->
             val name = args.getOrNull(0)?.toString()
             AbilityEntity(name)
         })
-
         environment.define("ItemEntity", BuiltinFunction("ItemEntity") { args ->
             val name = args.getOrNull(0)?.toString()
             val cost = (args.getOrNull(1) as? Double)?.toInt() ?: 0
             ItemEntity(name, cost)
         })
-
         environment.define("BuffEntity", BuiltinFunction("BuffEntity") { args ->
             val name = args.getOrNull(0)?.toString()
             BuffEntity(name)
@@ -171,7 +168,6 @@ class Evaluator {
                 else -> throw RuntimeError("Unknown method '$methodName' on Champion", call.methodName.line)
             }
         }
-
         // Handle AbilityEntity methods
         if (obj is AbilityEntity) {
             return when (methodName) {
@@ -188,7 +184,6 @@ class Evaluator {
                 else -> throw RuntimeError("Unknown method '$methodName' on Ability", call.methodName.line)
             }
         }
-
         // Handle ItemEntity methods
         if (obj is ItemEntity) {
             return when (methodName) {
@@ -201,7 +196,6 @@ class Evaluator {
                 else -> throw RuntimeError("Unknown method '$methodName' on Item", call.methodName.line)
             }
         }
-
         throw RuntimeError("Cannot call method on non-entity object", call.methodName.line)
     }
 
@@ -216,11 +210,8 @@ class Evaluator {
     private fun evaluateEventHandler(handler: Expr.EventHandler): Any? {
         val eventName = handler.eventType.lexeme
         val params = handler.params.joinToString(", ") { it.lexeme }
-        println("  Event: $eventName($params)")
-
-        handler.body.forEach { stmt ->
-            evaluateStatement(stmt)
-        }
+        println(" Event: $eventName($params)")
+        evaluateStatement(handler.body)  // Now traverses Stmt.Block tree
         return null
     }
 
@@ -298,10 +289,10 @@ class Evaluator {
     private fun evaluateIf(ifStmt: Stmt.If): Any? {
         val condition = evaluate(ifStmt.condition)
         return if (isTruthy(condition)) {
-            ifStmt.thenBranch.forEach { evaluateStatement(it) }
+            evaluateStatement(ifStmt.thenBranch)  // Traverse Block tree
             null
         } else if (ifStmt.elseBranch != null) {
-            ifStmt.elseBranch.forEach { evaluateStatement(it) }
+            evaluateStatement(ifStmt.elseBranch)  // Traverse Block tree
             null
         } else {
             null
@@ -310,14 +301,14 @@ class Evaluator {
 
     private fun evaluateWhile(whileStmt: Stmt.While): Any? {
         while (isTruthy(evaluate(whileStmt.condition))) {
-            whileStmt.body.forEach { evaluateStatement(it) }
+            evaluateStatement(whileStmt.body)  // Traverse Block tree
         }
         return null
     }
 
     private fun evaluateCombo(combo: Stmt.Combo): Any? {
-        println("    Combo executing...")
-        combo.actions.forEach { evaluateStatement(it) }
+        println(" Combo executing...")
+        evaluateStatement(combo.actions)  // Traverse Block tree
         return null
     }
 
@@ -354,7 +345,6 @@ class Evaluator {
         val left = evaluate(expr.left)
         val right = evaluate(expr.right)
         val operator = expr.operator.lexeme
-
         return when (operator) {
             "+" -> {
                 when {
@@ -408,7 +398,6 @@ class Evaluator {
     private fun evaluateUnary(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
         val operator = expr.operator.lexeme
-
         return when (operator) {
             "-" -> {
                 requireNumber(right, expr.operator)
