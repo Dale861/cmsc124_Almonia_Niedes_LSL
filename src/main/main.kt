@@ -27,7 +27,7 @@ fun runRepl() {
     println()
     println("Type statements ending with ';'")
     println("Type 'exit' or 'quit' to exit")
-    println("Type 'script' to enter multi-line paste mode")
+    println("Type 'script' to enter multi-line script mode")
     println("Type 'run <filename>' to execute a script")
     println("Type 'clear' to reset the environment")
     println("Type 'help' for more commands")
@@ -63,7 +63,7 @@ fun runRepl() {
                     continue
                 }
                 trimmedLower == "script" -> {
-                    handlePasteMode(evaluator)
+                    handlescriptMode(evaluator)
                     continue
                 }
                 trimmedLower.startsWith("run ") -> {
@@ -103,7 +103,7 @@ fun showHelp() {
     println()
     println("=== LSL REPL Commands ===")
     println("  exit, quit     - Exit the REPL")
-    println("  paste          - Enter multi-line paste mode (type 'END' to finish)")
+    println("  script          - Enter multi-line script mode (type 'END' to finish)")
     println("  run <file>     - Execute a script file")
     println("  clear          - Reset the environment")
     println("  help           - Show this help message")
@@ -115,10 +115,10 @@ fun showHelp() {
     println()
 }
 
-fun handlePasteMode(evaluator: Evaluator) {
+fun handlescriptMode(evaluator: Evaluator) {
     println()
     println("=== Multi-line Script Mode ===")
-    println("Paste your code below.")
+    println("script your code below.")
     println("Type 'END' on a new line when finished.")
     println("Type 'CANCEL' to abort.")
     println()
@@ -138,7 +138,7 @@ fun handlePasteMode(evaluator: Evaluator) {
 
                 val code = codeLines.joinToString("\n")
                 println()
-                println("=== Executing Pasted Code ===")
+                println("=== Executing scriptd Code ===")
                 println()
 
                 try {
@@ -151,7 +151,7 @@ fun handlePasteMode(evaluator: Evaluator) {
                 return
             }
             "CANCEL" -> {
-                println("Paste mode cancelled.")
+                println("script mode cancelled.")
                 return
             }
             else -> {
