@@ -7,10 +7,13 @@ class Parser(private val tokens: List<Token>) {
     fun parseStatements(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!isAtEnd()) {
-            try { statements.add(declaration()) }
-            catch (e: ParseError) { synchronize() }
+            try {
+                statements.add(declaration())
+            } catch (e: ParseError) {
+                synchronize()
+            }
         }
-        return statements
+        return statements.toList() // Convert to immutable list
     }
 
     private fun declaration(): Stmt {
@@ -77,7 +80,7 @@ class Parser(private val tokens: List<Token>) {
             events.add(eventHandler())
         }
         consume(TokenType.RIGHT_BRACE, "Expect '}' after champion body.")
-        return Stmt.Champion(name, events)
+        return Stmt.Champion(name, events.toList())
     }
 
     private fun eventHandler(): Expr.EventHandler {
@@ -101,7 +104,7 @@ class Parser(private val tokens: List<Token>) {
             body.add(declaration())
         }
         consume(TokenType.RIGHT_BRACE, "Expect '}' after event body.")
-        return Expr.EventHandler(eventType, params, body)
+        return Expr.EventHandler(eventType, params.toList(), body.toList())
     }
 
     private fun ifStatement(): Stmt {
@@ -119,7 +122,7 @@ class Parser(private val tokens: List<Token>) {
             }
         }
         consume(TokenType.END, "Expect 'end' after if statement.")
-        return Stmt.If(condition, thenBranch, elseBranch)
+        return Stmt.If(condition, thenBranch.toList(), elseBranch?.toList())
     }
 
     private fun whileStatement(): Stmt {
@@ -130,7 +133,7 @@ class Parser(private val tokens: List<Token>) {
             body.add(declaration())
         }
         consume(TokenType.END, "Expect 'end' after while body.")
-        return Stmt.While(condition, body)
+        return Stmt.While(condition, body.toList())
     }
 
     private fun comboStatement(): Stmt {
@@ -140,7 +143,7 @@ class Parser(private val tokens: List<Token>) {
             actions.add(declaration())
         }
         consume(TokenType.RIGHT_BRACE, "Expect '}' after combo body.")
-        return Stmt.Combo(actions)
+        return Stmt.Combo(actions.toList())
     }
 
     private fun block(): List<Stmt> {
@@ -149,7 +152,7 @@ class Parser(private val tokens: List<Token>) {
             statements.add(declaration())
         }
         consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
-        return statements
+        return statements.toList()
     }
 
     private fun expressionStatement(): Stmt {
@@ -249,8 +252,6 @@ class Parser(private val tokens: List<Token>) {
             when {
                 match(TokenType.LEFT_PAREN) -> expr = finishCall(expr)
                 match(TokenType.DOT) -> {
-                    // FIX: Accept any token as a method name, not just IDENTIFIER
-                    // This allows keywords like "cast", "attack" to be used as methods
                     val methodName = advanceAsIdentifier()
                     consume(TokenType.LEFT_PAREN, "Expect '(' after method name")
                     val args = mutableListOf<Expr>()
@@ -260,7 +261,7 @@ class Parser(private val tokens: List<Token>) {
                         } while (match(TokenType.COMMA))
                     }
                     consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments")
-                    expr = Expr.MethodCall(expr, methodName, args)
+                    expr = Expr.MethodCall(expr, methodName, args.toList())
                 }
                 else -> break
             }
@@ -268,11 +269,9 @@ class Parser(private val tokens: List<Token>) {
         return expr
     }
 
-    // NEW: Helper to consume any token as an identifier (for method names)
     private fun advanceAsIdentifier(): Token {
         if (isAtEnd()) throw error(peek(), "Expect method name after '.'")
         val token = advance()
-        // Convert the token to act like an identifier by creating a new token
         return Token(TokenType.IDENTIFIER, token.lexeme, null, token.line)
     }
 
@@ -288,7 +287,7 @@ class Parser(private val tokens: List<Token>) {
             is Expr.Variable -> callee.name
             else -> throw error(peek(), "Invalid function call")
         }
-        return Expr.Call(calleeToken, args)
+        return Expr.Call(calleeToken, args.toList())
     }
 
     private fun primary(): Expr {
