@@ -269,19 +269,31 @@ class Evaluator {
     }
 
     private fun evaluateFor(forStmt: Stmt.For): Any? {
-        // Initializer
-        forStmt.initializer?.let { evaluateStatement(it) }
+        val previous = environment
+        try {
+            environment = Environment(previous)
 
-        // Loop condition
-        while (forStmt.condition == null || isTruthy(evaluate(forStmt.condition))) {
-            // Body
-            forStmt.body.forEach { evaluateStatement(it) }
+            forStmt.initializer?.let {
+                evaluateStatement(it)
+            }
 
-            // Increment
-            forStmt.increment?.let { evaluate(it) }
+            while (forStmt.condition == null || isTruthy(evaluate(forStmt.condition))) {
+                forStmt.body.forEach { stmt ->
+                    evaluateStatement(stmt)
+                }
+
+                forStmt.increment?.let {
+                    evaluate(it)
+                }
+            }
+
+            return null
+        } finally {
+            environment = previous
         }
-        return null
     }
+
+
 
     private fun evaluateIf(ifStmt: Stmt.If): Any? {
         val condition = evaluate(ifStmt.condition)

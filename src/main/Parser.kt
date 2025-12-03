@@ -30,6 +30,16 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun varDeclaration(): Stmt {
+        val stmt = varDeclarationHelper()
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+        return stmt
+    }
+
+    private fun forVarDeclaration(): Stmt {
+        return varDeclarationHelper()
+    }
+
+    private fun varDeclarationHelper(): Stmt {
         var typeSpecifier: Token? = null
         if (match(TokenType.CHAMPION, TokenType.ABILITY, TokenType.ITEM, TokenType.BUFF)) {
             typeSpecifier = previous()
@@ -41,7 +51,6 @@ class Parser(private val tokens: List<Token>) {
         } else if (typeSpecifier != null) {
             initializer = createDefaultInitializer(typeSpecifier)
         }
-        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
         return Stmt.Var(name, typeSpecifier, initializer)
     }
 
@@ -77,18 +86,29 @@ class Parser(private val tokens: List<Token>) {
 
     private fun forStatement(): Stmt {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
-        val initializer = if (!check(TokenType.SEMICOLON)) {
-            if (match(TokenType.VAR)) varDeclaration() else expressionStatement()
-        } else null
-        consume(TokenType.SEMICOLON, "Expect ';' after initializer.")
 
+        // Parse initializer
+        val initializer: Stmt? = when {
+            match(TokenType.SEMICOLON) -> null  // No initializer, semicolon already consumed
+            match(TokenType.VAR) -> {
+                val varStmt = forVarDeclaration()
+                consume(TokenType.SEMICOLON, "Expect ';' after loop initializer.")
+                varStmt
+            }
+            else -> expressionStatement()  // This already consumes the semicolon
+        }
+
+        // Parse condition
         val condition = if (!check(TokenType.SEMICOLON)) expression() else null
-        consume(TokenType.SEMICOLON, "Expect ';' after condition.")
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
 
+        // Parse increment
         val increment = if (!check(TokenType.RIGHT_PAREN)) expression() else null
         consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
 
-        val body = block()  // Use {} block
+        // Parse body
+        consume(TokenType.LEFT_BRACE, "Expect '{' after for clauses.")
+        val body = block()
         return Stmt.For(initializer, condition, increment, body)
     }
 
@@ -113,6 +133,7 @@ class Parser(private val tokens: List<Token>) {
         val params = if (!check(TokenType.RIGHT_PAREN)) {
             argumentList()
         } else emptyList()
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
         consume(TokenType.LEFT_BRACE, "Expect '{' before function body.")
         val body = block()
         return Stmt.Function(name, params, body)
