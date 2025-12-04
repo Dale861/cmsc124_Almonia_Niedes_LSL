@@ -4,6 +4,46 @@
 
 ---
 
+## Built-in Functions
+
+LSL provides several built-in functions for common operations:
+
+### General Functions
+- `readLine()` - Reads a line of input from the user
+
+### Entity Constructors
+- `ChampionEntity(name)` - Constructor for creating champions
+- `AbilityEntity(name)` - Constructor for creating abilities
+- `ItemEntity(name, cost)` - Constructor for creating items
+- `BuffEntity(name)` - Constructor for creating buffs
+
+### String and Array Functions
+- `toArray(string)` - Converts a string to an array of characters
+  ```lsl
+  var chars = toArray("Hello");  // ['H', 'e', 'l', 'l', 'o']
+  ```
+- `toString(array)` - Converts an array to a string
+  ```lsl
+  var str = toString(['H', 'i']);  // "Hi"
+  ```
+- `length(stringOrArray)` - Returns the length of a string or array
+  ```lsl
+  print length("Hello");  // 5
+  print length([1, 2, 3]);  // 3
+  ```
+- `push(array, value)` - Adds an element to the end of an array
+  ```lsl
+  var arr = [1, 2];
+  push(arr, 3);  // arr is now [1, 2, 3]
+  ```
+- `pop(array)` - Removes and returns the last element of an array
+  ```lsl
+  var arr = [1, 2, 3];
+  var last = pop(arr);  // last = 3, arr is now [1, 2]
+  ```
+
+---
+
 ## Language Overview
 
 LSL is an experimental domain-specific programming language designed to script League of Legends champion behavior and game mechanics. Its main characteristics are:
@@ -11,7 +51,7 @@ LSL is an experimental domain-specific programming language designed to script L
 - Game-centric syntax with LoL-specific keywords (e.g., `cast`, `attack`, `onAbilityCast`).
 - Emphasis on clarity for competitive gaming strategy with readable operators and event-driven architecture.
 - Object-oriented design with game entities (Champions, Abilities, Items, Buffs).
-- Support for variables, control flow, method chaining, and combo execution.
+- Support for variables, control flow, functions, method chaining, and combo execution.
 - Case-sensitive and whitespace-insensitive (except as token delimiters).
 - Interactive REPL with multi-line paste mode and script execution.
 
@@ -26,11 +66,11 @@ LSL is an experimental domain-specific programming language designed to script L
 2. Right-click on `main.kt` in the `src/main` folder
 3. Select "Run 'MainKt'"
 
-**Execute a Script (test.txt):**
-1. Move `test.txt` to the project root directory (or use `src/main/test.txt` as the path)
+**Execute a Script:**
+1. Move your script file to the project root directory (or use full path like `src/main/test.txt`)
 2. Click on the run configuration dropdown (top right)
 3. Select "Edit Configurations..."
-4. In the "Program arguments" field, add: `test.txt`
+4. In the "Program arguments" field, add: `test.txt` (or your script filename)
 5. Click "Apply" and "OK"
 6. Run the program
 
@@ -48,7 +88,7 @@ If you prefer to run from command line:
 
 *On Windows (PowerShell):*
 ```powershell
-kotlinc src/main/main.kt src/main/Scanner.kt src/main/Parser.kt src/main/Evaluator.kt src/main/Environment.kt src/main/GameEntities.kt src/main/Expr.kt src/main/Token.kt src/main/TokenType.kt src/main/Keywords.kt src/main/AstPrinter.kt -include-runtime -d lsl.jar
+kotlinc src/main/main.kt src/main/Scanner.kt src/main/Parser.kt src/main/Evaluator.kt src/main/Environment.kt src/main/GameEntities.kt src/main/Expr.kt src/main/Token.kt src/main/TokenType.kt src/main/Keywords.kt -include-runtime -d lsl.jar
 ```
 
 *On Linux/Mac (Bash):*
@@ -73,7 +113,7 @@ java -jar lsl.jar test.txt
 | Command | Description |
 |---------|-------------|
 | `exit` or `quit` | Exit the REPL |
-| `paste` | Enter multi-line paste mode (type 'END' to finish) |
+| `script` | Enter multi-line paste mode (type 'END' to finish) |
 | `run <filename>` | Execute a script file |
 | `clear` | Reset the environment |
 | `help` | Show help message |
@@ -135,8 +175,14 @@ The following are reserved words in LSL and cannot be used as identifiers:
 | `end` | End of control block |
 | `while` | Looping construct |
 | `do` | Keyword after while condition |
-| `for` | For loop (reserved) |
+| `for` | For loop with initialization, condition, and increment |
 | `combo` | Group multiple actions |
+
+### Functions
+| Keyword | Purpose |
+|---------|---------|
+| `fun` | Function declaration |
+| `return` | Return value from function |
 
 ### Logic
 | Keyword | Purpose |
@@ -182,6 +228,8 @@ The following are reserved words in LSL and cannot be used as identifiers:
 
 **Other:**
 - `.` (method call operator)
+- `[]` (array indexing and access)
+- `[]` (array indexing and access)
 
 ---
 
@@ -193,6 +241,90 @@ The following are reserved words in LSL and cannot be used as identifiers:
 - **Strings**: Enclosed in double quotes (`"Lux"`, `"Light Binding"`)
 - **Booleans**: `true`, `false`
 - **Nil**: `nil` represents null/empty value
+- **Arrays**: Ordered collections enclosed in square brackets (`[1, 2, 3]`, `["Lux", "Yasuo"]`)
+
+### Arrays and Indexing
+
+LSL supports arrays (lists) and indexing operations:
+
+**Array Creation:**
+```lsl
+var numbers = [1, 2, 3, 4, 5];
+var champions = ["Lux", "Yasuo", "Zed"];
+var mixed = [1, "hello", true, 3.14];
+var empty = [];
+```
+
+**Array Access:**
+```lsl
+var first = numbers[0];      // First element (0-based indexing)
+var third = numbers[2];      // Third element
+print champions[1];          // prints "Yasuo"
+```
+
+**Array Assignment:**
+```lsl
+numbers[0] = 100;
+champions[2] = "Ahri";
+```
+
+**String Indexing:**
+```lsl
+var name = "Yasuo";
+print name[0];  // prints "Y"
+print name[4];  // prints "o"
+```
+
+**Nested Arrays:**
+```lsl
+var matrix = [[1, 2], [3, 4]];
+print matrix[0][0];  // prints 1
+print matrix[1][1];  // prints 4
+```
+
+**Note**: Arrays use 0-based indexing. Arrays are mutable and can be modified after creation. String indexing is read-only.
+- **Arrays**: Ordered collections enclosed in square brackets (`[1, 2, 3]`, `["Lux", "Yasuo"]`)
+
+### Arrays and Indexing
+
+LSL supports arrays (lists) and indexing operations:
+
+**Array Creation:**
+```lsl
+var numbers = [1, 2, 3, 4, 5];
+var champions = ["Lux", "Yasuo", "Zed"];
+var mixed = [1, "hello", true, 3.14];
+var empty = [];
+```
+
+**Array Access:**
+```lsl
+var first = numbers[0];      // First element
+var third = numbers[2];      // Third element
+print champions[1];          // prints "Yasuo"
+```
+
+**Array Assignment:**
+```lsl
+numbers[0] = 100;
+champions[2] = "Ahri";
+```
+
+**String Indexing:**
+```lsl
+var name = "Yasuo";
+print name[0];  // prints "Y"
+print name[4];  // prints "o"
+```
+
+**Nested Arrays:**
+```lsl
+var matrix = [[1, 2], [3, 4]];
+print matrix[0][0];  // prints 1
+print matrix[1][1];  // prints 4
+```
+
+**Note**: Arrays use 0-based indexing. Arrays are mutable and can be modified after creation. String indexing is read-only.
 
 ### Game Entities
 
@@ -247,7 +379,7 @@ Represents an item with stats.
 
 **Constructor:**
 ```lsl
-var item sword = ItemEntity("Infinity Edge");
+var item sword = ItemEntity("Infinity Edge", 3400);
 ```
 
 **Properties:**
@@ -298,7 +430,7 @@ var x = 5; // This is also a comment
 - Statements must end with a semicolon (`;`)
 - Whitespace is ignored except as a separator between tokens
 - Blocks use keywords `then`/`do` and `end` for control flow
-- Braces `{ ... }` for champion declarations and combo blocks
+- Braces `{ ... }` for champion declarations, combo blocks, function bodies, and for loop bodies
 - Method calls support chaining for fluent API style
 
 ---
@@ -308,16 +440,21 @@ var x = 5; // This is also a comment
 ```
 program         ::= declaration* EOF
 
-declaration     ::= varDecl | statement
+declaration     ::= varDecl | funDecl | statement
 
 varDecl         ::= "var" typeSpec? IDENTIFIER ("=" expression)? ";"
 typeSpec        ::= "champion" | "ability" | "item" | "buff"
 
+funDecl         ::= "fun" IDENTIFIER "(" parameters? ")" "{" statement* "}"
+parameters      ::= IDENTIFIER ("," IDENTIFIER)*
+
 statement       ::= championStmt
                   | ifStmt
                   | whileStmt
+                  | forStmt
                   | comboStmt
                   | printStmt
+                  | returnStmt
                   | block
                   | exprStmt
 
@@ -332,9 +469,13 @@ ifStmt          ::= "if" expression "then" statement* ("else" statement*)? "end"
 
 whileStmt       ::= "while" expression "do" statement* "end"
 
+forStmt         ::= "for" "(" (varDecl | exprStmt | ";") expression? ";" expression? ")" "{" statement* "}"
+
 comboStmt       ::= "combo" "{" statement* "}"
 
 printStmt       ::= "print" expression ";"
+
+returnStmt      ::= "return" expression? ";"
 
 block           ::= "{" statement* "}"
 
@@ -427,6 +568,151 @@ while counter < 5 do
 end
 ```
 
+### For Loops
+```lsl
+// Print numbers 0 to 9
+for (var i = 0; i < 10; i = i + 1) {
+    print i;
+}
+
+// Calculate sum
+var sum = 0;
+for (var i = 1; i <= 100; i = i + 1) {
+    sum = sum + i;
+}
+print "Sum: " + sum;
+```
+
+### Functions
+```lsl
+// Fibonacci function with recursion
+fun fibonacci(n) {
+    if n <= 1 then
+        return n;
+    end
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+// Print first 10 Fibonacci numbers
+for (var i = 0; i < 10; i = i + 1) {
+    print "fib(" + i + ") = " + fibonacci(i);
+}
+
+// Factorial function
+fun factorial(n) {
+    if n <= 1 then
+        return 1;
+    end
+    return n * factorial(n - 1);
+}
+
+print "5! = " + factorial(5);
+```
+
+### Arrays
+```lsl
+// Create and access arrays
+var numbers = [1, 2, 3, 4, 5];
+print "Array: " + numbers;
+print "First element: " + numbers[0];
+print "Last element: " + numbers[4];
+
+// Modify arrays
+numbers[0] = 100;
+numbers[2] = 300;
+
+// Arrays with for loops
+var champions = ["Lux", "Yasuo", "Zed", "Ahri", "Ezreal"];
+for (var i = 0; i < 5; i = i + 1) {
+    print "  " + i + ": " + champions[i];
+}
+
+// Nested arrays
+var matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+print matrix[0][0];  // prints 1
+print matrix[1][2];  // prints 6
+```
+
+### String Manipulation
+```lsl
+// Convert string to array, modify, and convert back
+var string1 = "String";
+print string1;  // "String"
+
+var chars = toArray(string1);
+print chars;  // ['S', 't', 'r', 'i', 'n', 'g']
+
+chars[0] = "s";  // Change 'S' to 's'
+chars[3] = "o";  // Change 'i' to 'o'
+
+var string2 = toString(chars);
+print string2;  // "strong"
+
+// Function to replace character at index
+fun replaceChar(str, index, newChar) {
+    var arr = toArray(str);
+    arr[index] = newChar;
+    return toString(arr);
+}
+
+var name = "Yasuo";
+var modified = replaceChar(name, 0, "Z");
+print modified;  // "Zasuo"
+```
+
+### Arrays with For Loops
+```lsl
+var champions = ["Lux", "Yasuo", "Zed", "Ahri", "Ezreal"];
+
+for (var i = 0; i < 5; i = i + 1) {
+    print champions[i];
+}
+
+// Nested arrays
+var matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+print matrix[0][0];  // prints 1
+print matrix[1][2];  // prints 6
+```
+```lsl
+// Print numbers 0 to 9
+for (var i = 0; i < 10; i = i + 1) {
+    print i;
+}
+
+// Calculate sum
+var sum = 0;
+for (var i = 1; i <= 100; i = i + 1) {
+    sum = sum + i;
+}
+print "Sum: " + sum;
+```
+
+### Functions
+```lsl
+// Fibonacci function with recursion
+fun fibonacci(n) {
+    if n <= 1 then
+        return n;
+    end
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+// Print first 10 Fibonacci numbers
+for (var i = 0; i < 10; i = i + 1) {
+    print "fib(" + i + ") = " + fibonacci(i);
+}
+
+// Factorial function
+fun factorial(n) {
+    if n <= 1 then
+        return 1;
+    end
+    return n * factorial(n - 1);
+}
+
+print "5! = " + factorial(5);
+```
+
 ### Combo System
 ```lsl
 var champion zed = ChampionEntity("Zed");
@@ -478,6 +764,46 @@ if currentHealth < 50 and currentMana > 60 then
 end
 ```
 
+### Block Scoping
+```lsl
+var x = 5;
+print x;  // prints 5
+
+{
+    var x = 20;
+    print x;  // prints 20
+}
+
+print x;  // prints 5
+```
+
+### String Manipulation
+```lsl
+// Convert string to array, modify, and convert back
+var string1 = "String";
+print string1;  // "String"
+
+var chars = toArray(string1);
+print chars;  // ['S', 't', 'r', 'i', 'n', 'g']
+
+chars[0] = "s";  // Change 'S' to 's'
+chars[3] = "o";  // Change 'i' to 'o'
+
+var string2 = toString(chars);
+print string2;  // "strong"
+
+// Function to replace character at index
+fun replaceChar(str, index, newChar) {
+    var arr = toArray(str);
+    arr[index] = newChar;
+    return toString(arr);
+}
+
+var name = "Yasuo";
+var modified = replaceChar(name, 0, "Z");
+print modified;  // "Zasuo"
+```
+
 ---
 
 ## Design Rationale
@@ -490,13 +816,29 @@ end
 
 **Method Chaining**: Methods return `this` to enable fluent API style, making action sequences read naturally.
 
+**Functions and Recursion**: User-defined functions with proper scoping enable code reuse and advanced algorithms like Fibonacci calculations.
+
+**Lexical Scoping**: Variables follow block scope rules with closure support for functions, making behavior predictable.
+
+**For Loops**: Traditional C-style for loops with initialization, condition, and increment provide familiar iteration patterns.
+
+**Arrays and Indexing**: Dynamic arrays with 0-based indexing support mixed types and nested structures for flexible data management.
+
+**String Manipulation**: Built-in functions for converting between strings and character arrays enable string modification through array operations.
+
+**Functions and Recursion**: User-defined functions with proper scoping enable code reuse and advanced algorithms like Fibonacci calculations.
+
+**Lexical Scoping**: Variables follow block scope rules with closure support for functions, making behavior predictable.
+
+**For Loops**: Traditional C-style for loops with initialization, condition, and increment provide familiar iteration patterns.
+
 **Familiar Syntax**: C-like operators and control flow make LSL accessible while keeping it unique to gaming.
 
 **Interactive REPL**: Immediate feedback for testing and learning, with multi-line paste mode for complex scripts.
 
 **Type System**: Optional type hints (`var champion champ`) improve code clarity without requiring verbose declarations.
 
-**Simplicity First**: Core constructs (variables, control flow, entities, events) keep the language minimal and easy to extend.
+**Simplicity First**: Core constructs (variables, control flow, functions, entities, events) keep the language minimal and easy to extend.
 
 **Case Sensitivity**: Allows flexibility and avoids ambiguity with keywords.
 
@@ -518,17 +860,73 @@ Example error output:
 
 ---
 
+## Built-in Functions
+
+LSL provides several built-in functions for common operations:
+
+### General Functions
+- `clock()` - Returns current time in seconds (Unix timestamp)
+- `readLine()` - Reads a line of input from the user
+
+### Entity Constructors
+- `ChampionEntity(name)` - Constructor for creating champions
+- `AbilityEntity(name)` - Constructor for creating abilities
+- `ItemEntity(name, cost)` - Constructor for creating items
+- `BuffEntity(name)` - Constructor for creating buffs
+
+### String and Array Functions
+- `toArray(string)` - Converts a string to an array of characters
+  ```lsl
+  var chars = toArray("Hello");  // ['H', 'e', 'l', 'l', 'o']
+  ```
+- `toString(array)` - Converts an array to a string
+  ```lsl
+  var str = toString(['H', 'i']);  // "Hi"
+  ```
+- `length(stringOrArray)` - Returns the length of a string or array
+  ```lsl
+  print length("Hello");  // 5
+  print length([1, 2, 3]);  // 3
+  ```
+- `push(array, value)` - Adds an element to the end of an array
+  ```lsl
+  var arr = [1, 2];
+  push(arr, 3);  // arr is now [1, 2, 3]
+  ```
+- `pop(array)` - Removes and returns the last element of an array
+  ```lsl
+  var arr = [1, 2, 3];
+  var last = pop(arr);  // last = 3, arr is now [1, 2]
+  ```
+
+---
+
 ## Future Enhancements
 
-- For loops implementation
+- Break and continue statements for loops
 - Additional query functions for game state
-- More sophisticated event system
-- Champion stat tracking
-- Ability cooldown management
+- More sophisticated event system with priorities
+- Champion stat tracking and leveling
+- Ability cooldown management with timers
 - Team coordination features
+- Array and list data structures
+- Import/module system for code organization
 
 ---
 
 ## License
 
 LSL is an educational project created for learning programming language design.
+
+---
+
+## Acknowledgments
+
+Special thanks to the League of Legends community for inspiration and to the Kotlin community for providing excellent language development tools.
+
+
+---
+
+## Acknowledgments
+
+Special thanks to the League of Legends community for inspiration and to the Kotlin community for providing excellent language development tools.
