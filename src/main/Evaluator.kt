@@ -90,6 +90,8 @@ class Evaluator {
             is Expr.Assign -> evaluateAssign(expr)
             is Expr.Grouping -> evaluate(expr.expression)
             is Expr.MethodCall -> evaluateMethodCall(expr)
+            is Expr.IndexGet -> evaluateIndexGet(expr)
+            is Expr.IndexAssign -> evaluateIndexAssign(expr)
             else -> throw RuntimeError("Unknown expression type", 0)
         }
     }
@@ -454,6 +456,55 @@ class Evaluator {
         }
         return value.toString()
     }
+
+    private fun evaluateIndexGet(indexGet: Expr.IndexGet): Any? {
+        val target = evaluate(indexGet.target)
+        val indexVal = evaluate(indexGet.index) as? Double
+            ?: throw RuntimeError("Index must be a number.", indexGet.bracket.line)
+        val index = indexVal.toInt()
+
+        return when {
+            target is List<*> -> if (index >= 0 && index < target.size) target[index] else null
+            target is Map<*, *> -> target.entries.elementAtOrNull(index)?.value
+            target is String -> {
+                if (index >= 0 && index < target.length) target[index] else null
+            }
+            else -> throw RuntimeError("Cannot index type ${target!!::class.simpleName}", indexGet.bracket.line)
+        }
+    }
+
+    private fun evaluateIndexAssign(indexAssign: Expr.IndexAssign): Any? {
+        val targetObj = evaluate(indexAssign.target)!!
+        val indexVal = evaluate(indexAssign.index) as? Double
+            ?: throw RuntimeError("Index must be a number.", indexAssign.equals.line)
+        val index = indexVal.toInt()
+        val value = evaluate(indexAssign.value)
+
+        // Convert String to StringBuilder for mutation
+        val charValue = when (value) {
+            is String -> if (value.isNotEmpty()) value[0] else ' '
+            is Char -> value
+            else -> value.toString().firstOrNull() ?: ' '
+        }
+
+        return when {
+            targetObj is MutableList<*> -> { /* existing code */ }
+            targetObj is MutableMap<*, *> -> { /* existing code */ }
+            targetObj is String -> {
+                // Create new mutable string from original + mutation
+                val chars = targetObj.toList().toMutableList()
+                while (index >= chars.size) chars.add(' ')
+                chars[index] = charValue
+                val newString = String(chars.toCharArray())
+
+                // Assign back to variable (simulates mutability)
+                environment.assign((indexAssign.target as Expr.Variable).name, newString)
+                newString
+            }
+            else -> throw RuntimeError("Cannot assign to immutable index", indexAssign.equals.line)
+        }
+    }
+
 }
 
 class ReturnException(val value: Any?) : Exception()

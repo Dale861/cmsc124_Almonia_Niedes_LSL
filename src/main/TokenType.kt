@@ -40,9 +40,9 @@ enum class TokenType {
     // Keywords - Variables and Output
     VAR, PRINT, NIL,
 
-    // REMOVED: All map location keywords (DRAGON_PIT, BARON_PIT, etc.)
-
     FUN, RETURN,
+
+    LBRACKET, RBRACKET,
 
     EOF
 }

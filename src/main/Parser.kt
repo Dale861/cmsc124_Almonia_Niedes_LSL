@@ -235,14 +235,15 @@ class Parser(private val tokens: List<Token>) {
         if (match(TokenType.EQUAL)) {
             val equals = previous()
             val value = assignment()
-            if (expr is Expr.Variable) {
-                val name = expr.name
-                return Expr.Assign(name, value)
+            when {
+                expr is Expr.Variable -> return Expr.Assign(expr.name, value)
+                expr is Expr.IndexGet -> return Expr.IndexAssign(expr.target, expr.index, value, equals)
+                else -> error(equals, "Invalid assignment target.")
             }
-            error(equals, "Invalid assignment target.")
         }
         return expr
     }
+
 
     private fun logicOr(): Expr {
         var expr = logicAnd()
@@ -313,6 +314,12 @@ class Parser(private val tokens: List<Token>) {
         var expr = primary()
         while (true) {
             when {
+                match(TokenType.LBRACKET) -> {
+                    val target = expr
+                    val index = expression()
+                    consume(TokenType.RBRACKET, "Expect ']' after index.")
+                    expr = Expr.IndexGet(target, index, previous())
+                }
                 match(TokenType.LEFT_PAREN) -> expr = finishCall(expr)
                 match(TokenType.DOT) -> {
                     val methodName = advanceAsIdentifier()
@@ -359,6 +366,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun primary(): Expr {
         when {
+            match(TokenType.STRING) -> return Expr.Literal(previous().literal)
             match(TokenType.FALSE) -> return Expr.Literal(false)
             match(TokenType.TRUE) -> return Expr.Literal(true)
             match(TokenType.NIL) -> return Expr.Literal(null)

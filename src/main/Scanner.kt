@@ -29,6 +29,8 @@ class Scanner(private val source: String) {
             '+' -> addToken(TokenType.PLUS)
             '-' -> addToken(TokenType.MINUS)
             '*' -> addToken(TokenType.STAR)
+            '[' -> addToken(TokenType.LBRACKET)
+            ']' -> addToken(TokenType.RBRACKET)
             '/' -> {
                 if (match('/')) {
                     // Single-line comment

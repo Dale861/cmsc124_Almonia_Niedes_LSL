@@ -19,6 +19,8 @@ sealed class Expr {
 
     // NEW: Function calls (generalized from Call)
     data class FunctionCall(val callee: Expr, val paren: Token, val arguments: List<Expr>) : Expr()
+    data class IndexGet(val target: Expr, val index: Expr, val bracket: Token): Expr()
+    data class IndexAssign(val target: Expr, val index: Expr, val value: Expr, val equals: Token): Expr()
 }
 
 sealed class Stmt {

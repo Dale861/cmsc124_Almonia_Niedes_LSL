@@ -299,6 +299,18 @@ for (var i = 0; i < 15; i = i + 1) {
 print "";
 
 // ==========================================
+// Test 17: ARM
+// ==========================================
+
+var string1 = "string";
+var string2 = "";
+print string1;
+string2 = string1;
+string2[1] = "s";        // Changes to "srting"
+print string2;           // "srting"
+print string1;           // "srting" (same object)
+
+// ==========================================
 // End of Tests
 // ==========================================
 print "=== All Tests Completed ===";
