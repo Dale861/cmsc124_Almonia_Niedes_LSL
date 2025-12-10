@@ -1,4 +1,4 @@
-# LSL - League of Legends Script Language
+# LSL - League of Legends Scripting Language
 
 **Creators:** Dale Almonster & Stefan Niedesmonster
 
@@ -17,32 +17,6 @@ LSL provides several built-in functions for common operations:
 - `ItemEntity(name, cost)` - Constructor for creating items
 - `BuffEntity(name)` - Constructor for creating buffs
 
-### String and Array Functions
-- `toArray(string)` - Converts a string to an array of characters
-  ```lsl
-  var chars = toArray("Hello");  // ['H', 'e', 'l', 'l', 'o']
-  ```
-- `toString(array)` - Converts an array to a string
-  ```lsl
-  var str = toString(['H', 'i']);  // "Hi"
-  ```
-- `length(stringOrArray)` - Returns the length of a string or array
-  ```lsl
-  print length("Hello");  // 5
-  print length([1, 2, 3]);  // 3
-  ```
-- `push(array, value)` - Adds an element to the end of an array
-  ```lsl
-  var arr = [1, 2];
-  push(arr, 3);  // arr is now [1, 2, 3]
-  ```
-- `pop(array)` - Removes and returns the last element of an array
-  ```lsl
-  var arr = [1, 2, 3];
-  var last = pop(arr);  // last = 3, arr is now [1, 2]
-  ```
-
----
 
 ## Language Overview
 
@@ -243,86 +217,7 @@ The following are reserved words in LSL and cannot be used as identifiers:
 - **Nil**: `nil` represents null/empty value
 - **Arrays**: Ordered collections enclosed in square brackets (`[1, 2, 3]`, `["Lux", "Yasuo"]`)
 
-### Arrays and Indexing
 
-LSL supports arrays (lists) and indexing operations:
-
-**Array Creation:**
-```lsl
-var numbers = [1, 2, 3, 4, 5];
-var champions = ["Lux", "Yasuo", "Zed"];
-var mixed = [1, "hello", true, 3.14];
-var empty = [];
-```
-
-**Array Access:**
-```lsl
-var first = numbers[0];      // First element (0-based indexing)
-var third = numbers[2];      // Third element
-print champions[1];          // prints "Yasuo"
-```
-
-**Array Assignment:**
-```lsl
-numbers[0] = 100;
-champions[2] = "Ahri";
-```
-
-**String Indexing:**
-```lsl
-var name = "Yasuo";
-print name[0];  // prints "Y"
-print name[4];  // prints "o"
-```
-
-**Nested Arrays:**
-```lsl
-var matrix = [[1, 2], [3, 4]];
-print matrix[0][0];  // prints 1
-print matrix[1][1];  // prints 4
-```
-
-**Note**: Arrays use 0-based indexing. Arrays are mutable and can be modified after creation. String indexing is read-only.
-- **Arrays**: Ordered collections enclosed in square brackets (`[1, 2, 3]`, `["Lux", "Yasuo"]`)
-
-### Arrays and Indexing
-
-LSL supports arrays (lists) and indexing operations:
-
-**Array Creation:**
-```lsl
-var numbers = [1, 2, 3, 4, 5];
-var champions = ["Lux", "Yasuo", "Zed"];
-var mixed = [1, "hello", true, 3.14];
-var empty = [];
-```
-
-**Array Access:**
-```lsl
-var first = numbers[0];      // First element
-var third = numbers[2];      // Third element
-print champions[1];          // prints "Yasuo"
-```
-
-**Array Assignment:**
-```lsl
-numbers[0] = 100;
-champions[2] = "Ahri";
-```
-
-**String Indexing:**
-```lsl
-var name = "Yasuo";
-print name[0];  // prints "Y"
-print name[4];  // prints "o"
-```
-
-**Nested Arrays:**
-```lsl
-var matrix = [[1, 2], [3, 4]];
-print matrix[0][0];  // prints 1
-print matrix[1][1];  // prints 4
-```
 
 **Note**: Arrays use 0-based indexing. Arrays are mutable and can be modified after creation. String indexing is read-only.
 
@@ -633,46 +528,7 @@ print matrix[0][0];  // prints 1
 print matrix[1][2];  // prints 6
 ```
 
-### String Manipulation
-```lsl
-// Convert string to array, modify, and convert back
-var string1 = "String";
-print string1;  // "String"
 
-var chars = toArray(string1);
-print chars;  // ['S', 't', 'r', 'i', 'n', 'g']
-
-chars[0] = "s";  // Change 'S' to 's'
-chars[3] = "o";  // Change 'i' to 'o'
-
-var string2 = toString(chars);
-print string2;  // "strong"
-
-// Function to replace character at index
-fun replaceChar(str, index, newChar) {
-    var arr = toArray(str);
-    arr[index] = newChar;
-    return toString(arr);
-}
-
-var name = "Yasuo";
-var modified = replaceChar(name, 0, "Z");
-print modified;  // "Zasuo"
-```
-
-### Arrays with For Loops
-```lsl
-var champions = ["Lux", "Yasuo", "Zed", "Ahri", "Ezreal"];
-
-for (var i = 0; i < 5; i = i + 1) {
-    print champions[i];
-}
-
-// Nested arrays
-var matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-print matrix[0][0];  // prints 1
-print matrix[1][2];  // prints 6
-```
 ```lsl
 // Print numbers 0 to 9
 for (var i = 0; i < 10; i = i + 1) {
@@ -873,31 +729,6 @@ LSL provides several built-in functions for common operations:
 - `AbilityEntity(name)` - Constructor for creating abilities
 - `ItemEntity(name, cost)` - Constructor for creating items
 - `BuffEntity(name)` - Constructor for creating buffs
-
-### String and Array Functions
-- `toArray(string)` - Converts a string to an array of characters
-  ```lsl
-  var chars = toArray("Hello");  // ['H', 'e', 'l', 'l', 'o']
-  ```
-- `toString(array)` - Converts an array to a string
-  ```lsl
-  var str = toString(['H', 'i']);  // "Hi"
-  ```
-- `length(stringOrArray)` - Returns the length of a string or array
-  ```lsl
-  print length("Hello");  // 5
-  print length([1, 2, 3]);  // 3
-  ```
-- `push(array, value)` - Adds an element to the end of an array
-  ```lsl
-  var arr = [1, 2];
-  push(arr, 3);  // arr is now [1, 2, 3]
-  ```
-- `pop(array)` - Removes and returns the last element of an array
-  ```lsl
-  var arr = [1, 2, 3];
-  var last = pop(arr);  // last = 3, arr is now [1, 2]
-  ```
 
 ---
 
